@@ -1,51 +1,74 @@
 #include "main.h"
 
 /**
- * _printf - formatted output conversion and print data.
- * @format: input string.
- *
- * Return: number of chars printed.
+ * _printf - Parameters for printf
+ * @format: list of arguments
+ * Return: Printed thing
  */
+
 int _printf(const char *format, ...)
 {
-	unsigned int i = 0, len = 0, ibuf = 0;
-	va_list arguments;
-	int (*function)(va_list, char *, unsigned int);
-	char *buffer;
+	int chars;
+	va_list list;
 
-	va_start(arguments, format), buffer = malloc(sizeof(char) * 1024);
-	if (!format || !buffer || (format[i] == '%' && !format[i + 1]))
+	va_start(list, format);
+	if (format == NULL)
 		return (-1);
-	if (!format[i])
-		return (0);
-	for (i = 0; format && format[i]; i++)
+
+	chars = charsFormats(format, list);
+
+	va_end(list);
+	return (chars);
+}
+
+/**
+ * charsFormats - paremters printf
+ * @format: list of arguments
+ * @args: listing
+ * Return: value of print
+ */
+
+int charsFormats(const char *format, va_list args)
+{
+	int a, b, chars, r_val;
+
+	fmtsSpefier f_list[] = {{"c", _char}, {"s", _string},
+				{"%", _percent}, {"d", _integer}, {"i", _integer}, {NULL, NULL}
+	};
+	chars = 0;
+	for (a = 0; format[a] != '\0'; a++)
 	{
-		if (format[i] == '%')
+		if (format[a] == '%')
 		{
-			if (format[i + 1] == '\0')
-			{	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
-				return (-1);
-			}
-			else
-			{	function = get_print_func(format, i + 1);
-				if (function == NULL)
+			for (b = 0; f_list[b].sym != NULL; b++)
+			{
+				if (format[a + 1] == f_list[b].sym[0])
 				{
-					if (format[i + 1] == ' ' && !format[i + 2])
+					r_val = f_list[b].f(args);
+					if (r_val == -1)
 						return (-1);
-					handl_buf(buffer, format[i], ibuf), len++, i--;
+					chars += r_val;
+					break;
 				}
-				else
+			}
+			if (f_list[b].sym == NULL && format[a + 1] != ' ')
+			{
+				if (format[a + 1] != '\0')
 				{
-					len += function(arguments, buffer, ibuf);
-					i += ev_print_func(format, i + 1);
-				}
-			} i++;
+					_putchar(format[a]);
+					_putchar(format[a + 1]);
+					chars = chars + 2;
+}
+				else
+					return (-1);
+			}
+		a += 1;
 		}
 		else
-			handl_buf(buffer, format[i], ibuf), len++;
-		for (ibuf = len; ibuf > 1024; ibuf -= 1024)
-			;
+		{
+			_putchar(format[a]);
+			chars++;
+		}
 	}
-	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
-	return (len);
+	return (chars);
 }
